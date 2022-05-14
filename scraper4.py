@@ -1,7 +1,13 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+import csv
+from itertools import zip_longest
 
+
+product_name = []
+product_price = []
+product_link = []
 
 search_item = input("What product do you search for? ")
 url = f"https://www.newegg.ca/p/pl?d={search_item}&N=4131"
@@ -28,11 +34,16 @@ for page in range(1, pages+1):
         link = parent['href']
         next_parent = parent.findParent(class_="item-container")
         price = int(next_parent.find(class_='price-current').strong.string.replace(',',''))
+        product_name.append(item)
+        product_price.append(price)
+        product_link.append(link)
         items_found[item] = {
             'price': price,
             'link': link
         }
 
+file_list = [product_name,product_price,product_link]
+exported = zip_longest(*file_list)
 sorted_items = sorted(items_found.items(), key=lambda x: x[1]['price'])
 for item in sorted_items:
     print(item[0])
@@ -40,5 +51,8 @@ for item in sorted_items:
     print(item[1]['link'])
     print("------------------------")
 
-
+with open("items_found.csv", "w") as file:
+    writer = csv.writer(file)
+    writer.writerow(["product name","product price","product link"])
+    writer.writerows(exported)
 
